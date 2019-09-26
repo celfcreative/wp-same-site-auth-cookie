@@ -1,0 +1,13 @@
+{
+  "name": "celfcreative/wp-same-site-auth-cookie",
+  "description": "Add same site to wp auth cookies",
+  "type": "wordpress-plugin",
+  "authors": [
+    {
+      "name": "Jack Taylor",
+      "email": "jack@celfcreative.com"
+    }
+  ],
+  "license": "MIT",
+  "require": {}
+}
