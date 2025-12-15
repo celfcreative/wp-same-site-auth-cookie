@@ -3,7 +3,7 @@
 	Plugin Name: wp-same-site-auth-cookie
     Plugin URI: https://github.com/celfcreative/wp-same-site-auth-cookie
     Description: Adds same site to the wp auth cookies.
-	Version: 2.0.0
+	Version: 2.1.0
 	Author: Celf creative
 	Author URI: 
 	License: GPLv2 or later
@@ -235,3 +235,37 @@ if (!function_exists('wp_set_auth_cookie')) :
         }
     }
 endif;
+
+
+function set_samesite_lax_for_resetpass_cookie() {
+    // Check if we are on the password reset page (action=rp)
+    if ( ! isset( $_GET['action'] ) || 'rp' !== $_GET['action'] ) {
+        return;
+    }
+
+    $rp_cookie = 'wp-resetpass-' . COOKIEHASH;
+
+    // Check if the cookie has been set by WordPress core
+    if ( isset( $_COOKIE[ $rp_cookie ] ) ) {
+        $cookie_value = $_COOKIE[ $rp_cookie ];
+
+        // The original cookie is set with:
+        // setcookie( $rp_cookie, $cookie_value, 0, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
+        // where 0 is the expiration (session cookie), $rp_path is RP_COOKIE_PATH.
+
+        // Re-set the cookie with the SameSite=Lax option.
+        // Using the modern PHP setcookie array syntax (PHP 7.3+).
+        $options = array(
+            'expires'  => 0, // Session cookie
+            'path' => wp_parse_url( wp_login_url(), PHP_URL_PATH ),
+            'domain'   => COOKIE_DOMAIN,
+            'secure'   => is_ssl(),
+            'httponly' => true,
+            'samesite' => 'Lax',
+        );
+
+        // The setcookie function will send a new header, overriding the previous one.
+        setcookie( $rp_cookie, $cookie_value, $options );
+    }
+}
+add_action( 'init', 'set_samesite_lax_for_resetpass_cookie' );
